@@ -7,6 +7,20 @@ type Token struct {
 	Literal		string
 }
 
+var keywords = map[string]TokenType {
+	"func": FUNCTION,
+	"let": LET,
+	"const": CONST,
+}
+
+func LookupIdent(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return IDENT
+}
+	
+
 const (
 	ILLEGAL 	= "ILLEGAL"
 	EOF			= "EOF"
@@ -30,4 +44,5 @@ const (
 	// Keywords
 	FUNCTION	= "FUNCTION"
 	LET			= "LET"
+	CONST		= "CONST"
 )
