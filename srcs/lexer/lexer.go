@@ -15,10 +15,15 @@ func (lexer *Lexer) NextToken() token.Token {
 	var tok token.Token
 
 	lexer.skipWhitespace()
-	lexer.readChar()
 	switch lexer.ch {
-	case '=':
-		tok = newToken(token.ASSIGN, lexer.ch)
+		case '=':
+			if lexer.peekChar() == '=' {
+				ch := lexer.ch
+				lexer.readChar()
+				tok = token.Token{Type: token.EQ, Literal: string(ch) + string(lexer.ch)}
+			} else {
+				tok = newToken(token.ASSIGN, lexer.ch)
+			}
 		case ';':
 			tok = newToken(token.SEMICOLON, lexer.ch)
 		case '(':
@@ -29,6 +34,24 @@ func (lexer *Lexer) NextToken() token.Token {
 			tok = newToken(token.COMMA, lexer.ch)
 		case '+':
 			tok = newToken(token.PLUS, lexer.ch)
+		case '-':
+			tok = newToken(token.MINUS, lexer.ch)
+		case '!':
+			if lexer.peekChar() == '=' {
+				ch := lexer.ch
+				lexer.readChar()
+				tok = token.Token{Type: token.NOT_EQ, Literal: string(ch) + string(lexer.ch)}
+			} else {
+				tok = newToken(token.BANG, lexer.ch)
+			}
+		case '/':
+			tok = newToken(token.SLASH, lexer.ch)
+		case '*':
+			tok = newToken(token.ASTERISK, lexer.ch)
+		case '<':
+			tok = newToken(token.LT, lexer.ch)
+		case '>':
+			tok = newToken(token.GT, lexer.ch)
 		case '{':
 			tok = newToken(token.LBRACE, lexer.ch)
 		case '}':
@@ -47,19 +70,29 @@ func (lexer *Lexer) NextToken() token.Token {
 					return tok
 				} else {
 					tok = newToken(token.ILLEGAL, lexer.ch)
-				}
+			}
 	}
+	lexer.readChar()
 	return tok
 }
 
 func New(input string) *Lexer {
-	lex := &Lexer{input: input}
-	return lex
+	lexer := &Lexer{input: input}
+	lexer.readChar()
+	return lexer
 }
 
-func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
-		l.readChar()
+func (lexer *Lexer) peekChar() byte {
+	if lexer.readPostion >= len(lexer.input) {
+		return 0
+	} else {
+		return lexer.input[lexer.readPostion]
+	}
+}
+
+func (lexer *Lexer) skipWhitespace() {
+	for lexer.ch == ' ' || lexer.ch == '\t' || lexer.ch == '\n' || lexer.ch == '\r' {
+		lexer.readChar()
 	}
 }	
 
@@ -94,7 +127,7 @@ func (lexer *Lexer) readChar() {
 		lexer.ch = lexer.input[lexer.readPostion]
 	}
 	lexer.position = lexer.readPostion
-	lexer.readPostion++;
+	lexer.readPostion += 1
 }
 
 func newToken(tokenType token.TokenType, ch byte) token.Token {
