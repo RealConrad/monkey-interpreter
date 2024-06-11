@@ -1,9 +1,14 @@
 package ast
 
-import "github.com/RealConrad/monkey-interpreter/srcs/token"
+import (
+	"bytes"
+
+	"github.com/RealConrad/monkey-interpreter/srcs/token"
+)
 
 type Node interface {
 	TokenLiteral() string
+	String() string
 }
 
 type Statement interface {
@@ -36,6 +41,11 @@ type LetStatement struct {
 	Value Expression
 }
 
+type ExpressionStatement struct {
+	Token token.Token // first token of expression
+	Expression Expression
+}
+
 /* --------------------------- LET-STATEMENT FUNC --------------------------- */
 
 func (ls *LetStatement) statementNode() {}
@@ -44,7 +54,15 @@ func (ls *LetStatement) TokenLiteral() string {
 	return ls.Token.Literal
 }
 
-/* ------------------------------- RETURN FUN ------------------------------- */
+/* ----------------------------- Expression FUNC ---------------------------- */
+
+func (es *ExpressionStatement) statementNode() {}
+
+func (es *ExpressionStatement) TokenLiteral() string { 
+	return es.Token.Literal 
+}
+
+/* ------------------------------- RETURN FUNC ------------------------------- */
 
 func (rs *ReturnStatement) statementNode() {}
 
@@ -69,3 +87,43 @@ func (p *Program) TokenLiteral() string {
 	return ""
 }
 
+func (i *Identifier) String() string { 
+	return i.Value
+}
+
+func (p *Program) String() string {
+	var out bytes.Buffer
+	for _, s := range p.Statements {
+		out.WriteString(s.String())
+	}
+	return out.String()
+}
+
+func (ls *LetStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(ls.TokenLiteral() + " ")
+	out.WriteString(ls.Name.String())
+	out.WriteString(" = ")
+	if ls.Value != nil {
+		out.WriteString(ls.Value.String())
+	}
+	out.WriteString(";")
+	return out.String()
+}
+
+func (rs *ReturnStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(rs.TokenLiteral() + " ")
+	if rs.ReturnValue != nil {
+		out.WriteString(rs.ReturnValue.String())
+	}
+	out.WriteString(";")
+	return out.String()
+}
+
+func (es *ExpressionStatement) String() string {
+	if es.Expression != nil {
+		return es.Expression.String()
+	}
+	return ""
+}
